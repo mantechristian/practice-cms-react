@@ -1,9 +1,8 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography } from '@mui/material';
 import { useContext, useLayoutEffect, useState } from "react";
-import { API_URL } from "../config";
 import ContactsContext from '../contexts/ContactsContext';
 import '../scss/main.scss';
-import { debounce } from '../utils';
+import { debounce, fetchApi, getAuthHeader } from '../utils';
 import ContactsTable from "./ContactsTable";
 
 const Dashboard = () => {
@@ -20,21 +19,15 @@ const Dashboard = () => {
     } = useContext(ContactsContext);
 
     const getContacts = async () => {
-        const response = await fetch(`${API_URL}/contacts`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': 'Bearer ' + localStorage.getItem('accessToken')?.toString()
-            }
-        });
-
+        const response = await fetchApi(
+            '/contacts',
+            'GET',
+            getAuthHeader(),
+            null,
+        );
         console.log('accessToken: ', localStorage.getItem('accessToken'));
-
-        const json = await response.json();
-        console.log('contacts response', json);
-
-        setContacts(json);
+        console.log('contacts response', response);
+        setContacts(response);
     }
 
     useLayoutEffect(() => {
@@ -58,25 +51,21 @@ const Dashboard = () => {
 
     const handleSave = async () => {
         const { name, email, phone } = contact;
-        const response = await fetch(`${API_URL}/contacts`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': 'Bearer ' + localStorage.getItem('accessToken')?.toString()
-            },
-            body: JSON.stringify({
+        const response = await fetchApi(
+            '/contacts',
+            'POST',
+            getAuthHeader(),
+            {
                 name: name,
                 email: email,
                 phone: phone
-            })
-        });
+            },
+        );
 
-        const json = await response.json();
-        console.log('create contact response', json);
+        console.log('create contact response', response);
 
-        if (json?._id) {
-            setContacts([...contacts, json]);
+        if (response?._id) {
+            setContacts([...contacts, response]);
         }
 
         resetContact();
@@ -85,27 +74,23 @@ const Dashboard = () => {
 
     const handleUpdate = async () => {
         const { _id, name, email, phone } = contact;
-        const response = await fetch(`${API_URL}/contacts/${_id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': 'Bearer ' + localStorage.getItem('accessToken')?.toString()
-            },
-            body: JSON.stringify({
+        const response = await fetchApi(
+            `/contacts/${_id}`,
+            'PUT',
+            getAuthHeader(),
+            {
                 _id,
                 name,
                 email,
                 phone
-            })
-        });
+            },
+        );
 
-        const json = await response.json();
-        console.log('update contact response', json);
+        console.log('update contact response', response);
 
         const updatedContacts = contacts.map((contact) => {
             if (contact._id === _id) {
-                return json;
+                return response;
             }
             return contact;
         });
@@ -116,17 +101,14 @@ const Dashboard = () => {
 
     const handleDeleteConfirm = async () => {
         const { _id } = contact;
-        const response = await fetch(`${API_URL}/contacts/${_id}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': 'Bearer ' + localStorage.getItem('accessToken')?.toString()
-            },
-        });
+        const response = await fetchApi(
+            `/contacts/${_id}`,
+            'DELETE',
+            getAuthHeader(),
+            null,
+        );
 
-        const json = await response.json();
-        console.log('delete contact response', json);
+        console.log('delete contact response', response);
 
         const updatedContacts = contacts.filter((contact) => contact._id !== _id);
         setContacts([...updatedContacts]);
@@ -140,21 +122,15 @@ const Dashboard = () => {
 
     const handleSearch = async (searchTerm) => {
         // Perform some async search operation
-        const response = await fetch(`${API_URL}/contacts/search`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Authorization': 'Bearer ' + localStorage.getItem('accessToken')?.toString()
-            },
-            body: JSON.stringify({
-                searchText: searchTerm
-            })
-        });
+        const response = await fetchApi(
+            `/contacts/search`,
+            'POST',
+            getAuthHeader(),
+            { searchText: searchTerm },
+        );
 
-        const filteredContacts = await response.json();
-        console.log('filteredContacts: ', filteredContacts);
-        setContacts([...filteredContacts]);
+        console.log('filteredContacts: ', response);
+        setContacts([...response]);
     };
 
     const debouncedSearch = debounce(handleSearch, 300);
@@ -182,7 +158,7 @@ const Dashboard = () => {
                     <Button onClick={handleDeleteConfirm}>Delete</Button>
                 </DialogActions>
             </Dialog>
-            <Typography variant="h4" component="h1" gutterBottom>
+            <Typography variant="h4" component="h1" gutterBottom style={{ marginTop: '20px', marginBottom: '20px' }}>
                 Contacts List
             </Typography>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
