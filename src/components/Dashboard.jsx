@@ -1,13 +1,17 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, Snackbar, TextField, Typography } from '@mui/material';
 import { useContext, useLayoutEffect, useState } from "react";
 import ContactsContext from '../contexts/ContactsContext';
 import '../scss/main.scss';
-import { debounce, fetchApi, getAuthHeader } from '../utils';
+import { debounce, fetchApi, getAuthHeader, validateEmail } from '../utils';
 import ContactsTable from "./ContactsTable";
 
 const Dashboard = () => {
     const [open, setOpen] = useState(false);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+    const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
     const {
         contact,
@@ -49,8 +53,20 @@ const Dashboard = () => {
         setOpen(false);
     };
 
+    const showSnackbar = (severity, message) => {
+        setOpenSnackbar(true);
+        setSnackbarSeverity(severity);
+        setSnackbarMessage(message);
+    };
+
     const handleSave = async () => {
         const { name, email, phone } = contact;
+
+        if (!validateEmail(email)) {
+            showSnackbar('error', 'Please enter a valid email address.');
+            return;
+        }
+
         const response = await fetchApi(
             '/contacts',
             'POST',
@@ -66,6 +82,7 @@ const Dashboard = () => {
 
         if (response?._id) {
             setContacts([...contacts, response]);
+            showSnackbar('success', 'Successfully added contact.');
         }
 
         resetContact();
@@ -74,6 +91,12 @@ const Dashboard = () => {
 
     const handleUpdate = async () => {
         const { _id, name, email, phone } = contact;
+
+        if (!validateEmail(email)) {
+            showSnackbar('error', 'Please enter a valid email address.');
+            return;
+        }
+
         const response = await fetchApi(
             `/contacts/${_id}`,
             'PUT',
@@ -96,6 +119,7 @@ const Dashboard = () => {
         });
 
         setContacts([...updatedContacts]);
+        showSnackbar('success', 'Successfully updated contact.');
         setOpen(false);
     };
 
@@ -112,6 +136,7 @@ const Dashboard = () => {
 
         const updatedContacts = contacts.filter((contact) => contact._id !== _id);
         setContacts([...updatedContacts]);
+        showSnackbar('success', 'Successfully deleted contact.');
         setOpenDeleteDialog(false);
     }
 
@@ -148,6 +173,15 @@ const Dashboard = () => {
 
     return (
         <>
+            <Snackbar
+                open={openSnackbar}
+                autoHideDuration={6000}
+                onClose={() => setOpenSnackbar(false)}
+            >
+                <Alert severity={snackbarSeverity}>
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
             <Dialog open={openDeleteDialog} onClose={handleDeleteCancel}>
                 <DialogTitle>Are you sure you want to delete the contact?</DialogTitle>
                 <DialogContent>
@@ -172,7 +206,15 @@ const Dashboard = () => {
                     fullWidth
                     onChange={handleInputChange}
                 />
-                <Button className='no-outline' variant="contained" style={{ height: '40px', alignSelf: 'center' }} onClick={handleOpen}>Create Contact</Button>
+                <Button
+                    className='no-outline'
+                    variant="contained"
+                    style={{ height: '40px', alignSelf: 'center' }}
+                    onClick={handleOpen}
+                    startIcon={<AddIcon />}
+                >
+                    Create Contact
+                </Button>
             </div>
             <ContactsTable
                 setOpen={setOpen}
