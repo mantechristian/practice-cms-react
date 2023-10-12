@@ -1,5 +1,6 @@
 // import * as React from 'react';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import { Alert, Snackbar } from '@mui/material';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -12,6 +13,7 @@ import Link from '@mui/material/Link';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { decodeAccessToken, fetchApi } from '../utils';
 
@@ -35,36 +37,56 @@ const defaultTheme = createTheme();
 const SignIn = () => {
     const navigate = useNavigate();
 
+    const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+
     const handleSignIn = async (data) => {
-        const response = await fetchApi(
-            '/users/login',
-            'POST',
-            {},
-            {
-                email: data.get('email'),
-                password: data.get('password')
-            },
-        );
+        try {
+            const response = await fetchApi(
+                '/users/login',
+                'POST',
+                {},
+                {
+                    email: data.get('email'),
+                    password: data.get('password')
+                },
+            );
 
-        console.log('login response', response);
+            console.log('login response', response);
 
-        const user = decodeAccessToken(response?.accessToken);
-        console.log('decipher token', user);
+            const user = decodeAccessToken(response?.accessToken);
+            console.log('decipher token', user);
 
-        localStorage.setItem('accessToken', response?.accessToken);
-        return user;
+            localStorage.setItem('accessToken', response?.accessToken);
+            return user;
+        } catch (error) {
+            console.log('error', error);
+            setSnackbarMessage(error?.message);
+            setSnackbarSeverity('error');
+            setOpenSnackbar(true);
+        }
     }
 
     const handleSubmit = async (event) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
         const user = await handleSignIn(data);
-        if (user) navigate('/dashboard');
+        if (user) navigate('/dashboard', { replace: true });
     };
 
     return (
         <ThemeProvider theme={defaultTheme}>
             <Container component="main" maxWidth="xs">
+                <Snackbar
+                    open={openSnackbar}
+                    autoHideDuration={6000}
+                    onClose={() => setOpenSnackbar(false)}
+                >
+                    <Alert severity={snackbarSeverity}>
+                        {snackbarMessage}
+                    </Alert>
+                </Snackbar>
                 <CssBaseline />
                 <Box
                     sx={{
