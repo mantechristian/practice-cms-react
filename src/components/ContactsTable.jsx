@@ -26,18 +26,23 @@ const ContactsTable = ({ setOpen, setOpenDeleteDialog }) => {
     setOpenDeleteDialog(true);
   }
 
+  const formatDateTime = (date) => {
+    const d = new Date(date);
+    return d.toLocaleString();
+  }
+
   return (
     <div className='container'>
       <TableContainer component={Paper} className='table-container'>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
           <TableHead>
             <TableRow>
-              <TableCell align="right">Name</TableCell>
-              <TableCell align="right">Email</TableCell>
-              <TableCell align="right">Phone</TableCell>
-              <TableCell align="right">Date Created</TableCell>
-              <TableCell align="right">Date Updated</TableCell>
-              <TableCell align="right"></TableCell>
+              <TableCell align="right" style={{ width: '150px' }}>Name</TableCell>
+              <TableCell align="right" style={{ width: '200px' }}>Email</TableCell>
+              <TableCell align="right" style={{ width: '150px' }}>Phone</TableCell>
+              <TableCell align="right" style={{ width: '150px' }}>Date Created</TableCell>
+              <TableCell align="right" style={{ width: '150px' }}>Date Updated</TableCell>
+              <TableCell align="right" style={{ width: '150px' }}></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -47,11 +52,11 @@ const ContactsTable = ({ setOpen, setOpenDeleteDialog }) => {
                   key={row._id}
                   sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                 >
-                  <TableCell align="right">{row.name}</TableCell>
+                  <TableCell align="right" style={{ width: '150px' }}>{row.name}</TableCell>
                   <TableCell align="right" style={{ width: '200px' }}>{row.email}</TableCell>
                   <TableCell align="right" style={{ width: '150px' }}>{row.phone}</TableCell>
-                  <TableCell align="right" style={{ width: '150px' }}>{row.createdAt}</TableCell>
-                  <TableCell align="right" style={{ width: '150px' }}>{row.updatedAt}</TableCell>
+                  <TableCell align="right" style={{ width: '150px' }}>{formatDateTime(row.createdAt)}</TableCell>
+                  <TableCell align="right" style={{ width: '150px' }}>{formatDateTime(row.updatedAt)}</TableCell>
                   <TableCell align="right" style={{ width: '150px' }}>
                     <>
                       <IconButton className='row-button' onClick={() => handleEdit(row)}>
@@ -64,6 +69,12 @@ const ContactsTable = ({ setOpen, setOpenDeleteDialog }) => {
                   </TableCell>
                 </TableRow>
               ))
+            }
+            {
+              contacts && contacts.length === 0 &&
+              <TableRow>
+                <TableCell colSpan={6} align="center">No contacts found.</TableCell>
+              </TableRow>
             }
           </TableBody>
         </Table>
