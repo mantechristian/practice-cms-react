@@ -4,7 +4,7 @@ import './App.css';
 import Dashboard from "./components/Dashboard";
 import Header from './components/Header';
 import SignIn from './components/SignIn';
-import SignUp from './components/Signup';
+import SignUp from './components/SignUp';
 import { ContactsProvider } from './contexts/ContactsContext';
 import './scss/main.scss';
 import { decodeAccessToken } from './utils';
