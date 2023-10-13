@@ -1,5 +1,5 @@
 import { useLayoutEffect, useState } from "react";
-import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import './App.css';
 import Dashboard from "./components/Dashboard";
 import Header from './components/Header';
@@ -12,7 +12,6 @@ import { decodeAccessToken } from './utils';
 function App() {
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const navigate = useNavigate();
 
   useLayoutEffect(() => {
     try {
@@ -32,13 +31,9 @@ function App() {
       <Header />
       <Routes>
         <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} />
-        <Route path="/login" element={<SignIn />} />
+        <Route path="/login" element={<SignIn setIsAuthenticated={setIsAuthenticated} />} />
         <Route path="/register" element={<SignUp />} />
-        {isAuthenticated ? (
-          <Route path="/dashboard" element={<ContactsProvider><Dashboard /></ContactsProvider>} />
-        ) : (
-          navigate('/login')
-        )}
+        <Route path="/dashboard" element={isAuthenticated ? <ContactsProvider><Dashboard /></ContactsProvider> : <SignIn setIsAuthenticated={setIsAuthenticated} />} />
       </Routes>
     </>
   )

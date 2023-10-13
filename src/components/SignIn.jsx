@@ -34,7 +34,8 @@ function Copyright(props) {
 
 const defaultTheme = createTheme();
 
-const SignIn = () => {
+// eslint-disable-next-line react/prop-types
+const SignIn = ({ setIsAuthenticated }) => {
     const navigate = useNavigate();
 
     const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -72,7 +73,10 @@ const SignIn = () => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
         const user = await handleSignIn(data);
-        if (user) navigate('/dashboard', { replace: true });
+        if (user) {
+            setIsAuthenticated(true);
+            navigate('/dashboard', { replace: true });
+        }
     };
 
     return (
