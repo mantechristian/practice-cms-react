@@ -155,7 +155,8 @@ const Dashboard = () => {
         );
 
         console.log('filteredContacts: ', response);
-        setContacts([...response]);
+        const data = response.map((contact) => contact.item);
+        setContacts([...data]);
     };
 
     const debouncedSearch = debounce(handleSearch, 300);
